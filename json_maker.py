@@ -30,12 +30,13 @@ class JSONMaker(Base):
             for column_index in range(table.ncols):
                 cell = table.cell(row_index, column_index)
                 cell_value = cell.value
+                cell_type = column_types[column_index]
                 if cell.ctype == xlrd.book.XL_CELL_NUMBER:
-                    if column_types[column_index] == COLUMN_INT_TYPE:
+                    if cell_type == COLUMN_INT_TYPE or cell_type == COLUMN_UINT_TYPE:
                         cell_value = int(cell_value)
                 if len(row_text) > 0:
                     row_text += ','
-                if column_types[column_index] == COLUMN_STRING_TYPE:
+                if cell_type == COLUMN_STRING_TYPE:
                     cell_value = str.format('"{}"', cell_value)
                 row_text += str.format('{}', cell_value)
             row_text = str.format('[{}]', row_text)

@@ -19,7 +19,10 @@ TEMPLATE_DIRECTORY = 'cpp_template'
 WIRTE_DIRECTORY    = 'cpp'
 
 CPP_INT_TYPE    = 'int'
+CPP_UINT_TYPE   = 'unsigned int'
 CPP_FLOAT_TYPE  = 'float'
+CPP_DOUBLE_TYPE = 'double'
+CPP_BOOL_TYPE   = 'bool'
 CPP_STRING_TYPE = 'std::string'
 CPP_LEFT_BRACE  = '{'
 CPP_RIGHT_BRACE = '}'
@@ -30,7 +33,10 @@ CPP    = 'cpp'
 ITEM_CLASS_NAME_SUFFIX = 'Item'
 
 CPP_INT_LOAD_MARCO    = '{} = row[{}].asInt();'
+CPP_UINT_LOAD_MARCO   = '{} = row[{}].asUInt();'
+CPP_BOOL_LOAD_MARCO   = '{} = row[{}].asBool();'
 CPP_FLOAT_LOAD_MARCO  = '{} = row[{}].asDouble();'
+CPP_DOUBLE_LOAD_MARCO = '{} = row[{}].asDouble();'
 CPP_STRING_LOAD_MARCO = '{} = row[{}].asString();'
 CPP_DECLARE_VAR_MARCO = 'JSON_DECLARE_VAR({});'
 CPP_LOAD_FILE_MARCO   = 'LOAD_JSON_FILE("{}");'
@@ -38,7 +44,7 @@ CPP_LOAD_DATA_MARCO   = 'LOAD_TABLE_DATA({});'
 
 CPP_BRACE_FORMAT = '\t\t{0}\n\t\t{2}\n\t\t{1}'
 
-COMMENT_POSITION = 35
+COMMENT_POSITION = 30
 
 class CPPMaker(Base):
 
@@ -53,6 +59,12 @@ class CPPMaker(Base):
             cpp_type = CPP_STRING_TYPE
         elif json_type == COLUMN_FLOAT_TYPE:
             cpp_type = CPP_FLOAT_TYPE
+        elif json_type == COLUMN_DOUBLE_TYPE:
+            cpp_type = CPP_DOUBLE_TYPE
+        elif json_type == COLUMN_UINT_TYPE:
+            cpp_type = CPP_UINT_TYPE
+        elif json_type == COLUMN_BOOL_TYPE:
+            cpp_type = CPP_BOOL_TYPE
         return cpp_type
 
     def _get_marco(self, json_type):
@@ -61,6 +73,12 @@ class CPPMaker(Base):
             marco = CPP_STRING_LOAD_MARCO
         elif json_type == COLUMN_FLOAT_TYPE:
             marco = CPP_FLOAT_LOAD_MARCO
+        elif json_type == COLUMN_DOUBLE_TYPE:
+            marco = CPP_DOUBLE_LOAD_MARCO
+        elif json_type == COLUMN_UINT_TYPE:
+            marco = CPP_UINT_LOAD_MARCO
+        elif json_type == COLUMN_BOOL_TYPE:
+            marco = CPP_BOOL_LOAD_MARCO
         return marco
 
     def _comment_space(self, clause):
