@@ -38,6 +38,8 @@ CPP_LOAD_DATA_MARCO   = 'LOAD_TABLE_DATA({});'
 
 CPP_BRACE_FORMAT = '\t\t{0}\n\t\t{2}\n\t\t{1}'
 
+COMMENT_POSITION = 35
+
 class CPPMaker(Base):
 
     _cpp_templates = {}
@@ -61,14 +63,21 @@ class CPPMaker(Base):
             marco = CPP_FLOAT_LOAD_MARCO
         return marco
 
+    def _comment_space(self, clause):
+        num = COMMENT_POSITION - len(clause)
+        space = ''
+        for index in range(num):
+            space += ' '
+        return space
+
     def _item_class_name(self, class_name):
         return str.format('{}{}', class_name, ITEM_CLASS_NAME_SUFFIX)
 
-    def _data_item_var_list(self, column_types, column_names):
+    def _data_item_var_list(self, column_types, column_names, column_titles):
         text = ''
         for index in range(len(column_types)):
-            text += str.format('\n\t{}{}{};', self._get_cpp_type(column_types[index]), 
-                ' ', column_names[index])
+            clause = str.format('{}{}{};', self._get_cpp_type(column_types[index]), ' ', column_names[index])
+            text += str.format('\n\t{}{}// {}', clause, self._comment_space(clause), column_titles[index])
         return text
 
     def _column_index(self, index):
@@ -84,9 +93,9 @@ class CPPMaker(Base):
             text += str.format('\n\t{}', load_list)
         return text
 
-    def _data_item_h(self, class_name, column_types, column_names):
+    def _data_item_h(self, class_name, column_types, column_names, column_titles):
         text = self._get_cpp_template(TEMPLATE_DATA_ITEM_H)
-        var_list = self._data_item_var_list(column_types, column_names)
+        var_list = self._data_item_var_list(column_types, column_names, column_titles)
         text = str.format(text, CPP_LEFT_BRACE, CPP_RIGHT_BRACE, class_name, var_list)
         return text
 
@@ -103,9 +112,10 @@ class CPPMaker(Base):
         table = self._try_get_sheet_by_name(sheet_name)
         column_names = table.row_values(TABLE_COLUMN_NAME_ROW_INDEX)
         column_types = table.row_values(TABLE_COLUMN_TYPE_ROW_INDEX)
+        column_titles = table.row_values(TABLE_COLUMN_TITLE_ROW_INDEX)
 
         ret = {}
-        ret[HEADER] = self._data_item_h(output_name, column_types, column_names)
+        ret[HEADER] = self._data_item_h(output_name, column_types, column_names, column_titles)
         ret[CPP] = self._data_item_cpp(output_name, column_types, column_names)
         return ret
 
