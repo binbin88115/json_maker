@@ -7,7 +7,7 @@
 #include "JSONData.h"
 
 #define JSON_VAR(TableName)         m_##TableName
-#define JSON_DECLARE_VAR(TableName) JSONLoader<TableName##Item> JSON_VAR(TableName)
+#define JSON_DECLARE_VAR(TableName) JSONLoader<TableName##{3}> JSON_VAR(TableName)
 #define JSON_DATASET(TableName)     JSONManager::sharedInstance().JSON_VAR(TableName)
 #define LOAD_JSON_DATA()            JSONManager::sharedInstance().loadData()
 

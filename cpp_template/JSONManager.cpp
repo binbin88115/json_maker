@@ -34,7 +34,7 @@ void JSONManager::loadData()
 	{1}
 {1}
 
-TiXmlDocument JSONManager::loadFromFile(const char* filename)
+Json::Value JSONManager::loadFromFile(const char* filename)
 {0}
 	Data data = CCFileUtils::getInstance()->getDataFromFile(filename);	
 

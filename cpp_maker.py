@@ -7,13 +7,13 @@
 
 from base import *
 
-TEMPLATE_JSON_MANAGER_H     = 'JSONManager.h'
-TEMPLATE_JSON_MANAGER_CPP   = 'JSONManager.cpp'
-TEMPLATE_JSON_LOADER        = 'JSONLoader.h'
-TEMPLATE_JSON_DATA_H        = 'JSONData.h'
-TEMPLATE_JSON_DATA_CPP      = 'JSONData.cpp'
-TEMPLATE_JSON_DATA_ITEM_H   = 'JSONDataItem.h'
-TEMPLATE_JSON_DATA_ITEM_CPP = 'JSONDataItem.cpp'
+TEMPLATE_MANAGER_H     = 'JSONManager.h'
+TEMPLATE_MANAGER_CPP   = 'JSONManager.cpp'
+TEMPLATE_LOADER        = 'JSONLoader.h'
+TEMPLATE_DATA_H        = 'JSONData.h'
+TEMPLATE_DATA_CPP      = 'JSONData.cpp'
+TEMPLATE_DATA_ITEM_H   = 'JSONDataItem.h'
+TEMPLATE_DATA_ITEM_CPP = 'JSONDataItem.cpp'
 
 TEMPLATE_DIRECTORY = 'cpp_template'
 WIRTE_DIRECTORY    = 'cpp'
@@ -27,7 +27,7 @@ CPP_RIGHT_BRACE = '}'
 HEADER = 'header'
 CPP    = 'cpp'
 
-XML_ITEM_CLASS_NAME_SUFFIX = 'Item'
+ITEM_CLASS_NAME_SUFFIX = 'Item'
 
 CPP_INT_LOAD_MARCO    = '{} = row[{}].asInt();'
 CPP_FLOAT_LOAD_MARCO  = '{} = row[{}].asDouble();'
@@ -38,7 +38,7 @@ CPP_LOAD_DATA_MARCO   = 'LOAD_TABLE_DATA({});'
 
 CPP_BRACE_FORMAT = '\t\t{0}\n\t\t{2}\n\t\t{1}'
 
-class CPPGenerate(Base):
+class CPPMaker(Base):
 
     _cpp_templates = {}
 
@@ -61,36 +61,42 @@ class CPPGenerate(Base):
             marco = CPP_FLOAT_LOAD_MARCO
         return marco
 
-    def _xml_item_class_name(self, class_name):
-        return str.format('{}{}', class_name, XML_ITEM_CLASS_NAME_SUFFIX)
+    def _item_class_name(self, class_name):
+        return str.format('{}{}', class_name, ITEM_CLASS_NAME_SUFFIX)
 
-    def _xml_data_item_var_list(self, column_types, column_names):
+    def _data_item_var_list(self, column_types, column_names):
         text = ''
         for index in range(len(column_types)):
             text += str.format('\n\t{}{}{};', self._get_cpp_type(column_types[index]), 
                 ' ', column_names[index])
         return text
 
-    def _xml_data_item_load_list(self, column_types, column_names):
+    def _column_index(self, index):
+        if index == 0:
+            index = '0u'
+        return index
+
+    def _data_item_load_list(self, column_types, column_names):
         text = ''
         for index in range(len(column_types)):
-            load_list = str.format(self._get_marco(column_types[index]), column_names[index])
+            load_list = str.format(self._get_marco(column_types[index]), 
+                column_names[index], self._column_index(index))
             text += str.format('\n\t{}', load_list)
         return text
 
-    def _xml_data_item_h(self, class_name, column_types, column_names):
-        text = self._get_cpp_template(TEMPLATE_XML_DATA_ITEM_H)
-        var_list = self._xml_data_item_var_list(column_types, column_names)
+    def _data_item_h(self, class_name, column_types, column_names):
+        text = self._get_cpp_template(TEMPLATE_DATA_ITEM_H)
+        var_list = self._data_item_var_list(column_types, column_names)
         text = str.format(text, CPP_LEFT_BRACE, CPP_RIGHT_BRACE, class_name, var_list)
         return text
 
-    def _xml_data_item_cpp(self, class_name, column_types, column_names):
-        template = self._get_cpp_template(TEMPLATE_XML_DATA_ITEM_CPP)
-        load_list = self._xml_data_item_load_list(column_types, column_names)
+    def _data_item_cpp(self, class_name, column_types, column_names):
+        template = self._get_cpp_template(TEMPLATE_DATA_ITEM_CPP)
+        load_list = self._data_item_load_list(column_types, column_names)
         text = str.format(template, CPP_LEFT_BRACE, CPP_RIGHT_BRACE, class_name, load_list)
         return text
 
-    def _xml_data_item(self, sheet_name, output_name):
+    def _data_item(self, sheet_name, output_name):
         if sheet_name == TEMPLATE_TABLE_NAME:
             return ''
 
@@ -99,32 +105,32 @@ class CPPGenerate(Base):
         column_types = table.row_values(TABLE_COLUMN_TYPE_ROW_INDEX)
 
         ret = {}
-        ret[HEADER] = self._xml_data_item_h(output_name, column_types, column_names)
-        ret[CPP] = self._xml_data_item_cpp(output_name, column_types, column_names)
+        ret[HEADER] = self._data_item_h(output_name, column_types, column_names)
+        ret[CPP] = self._data_item_cpp(output_name, column_types, column_names)
         return ret
 
-    def _xml_data_item_list(self):
+    def _data_item_list(self):
         ret = {}
         ret[HEADER] = ''
         ret[CPP] = ''
         for row in self._output_config_table:
-            item = self._xml_data_item(row[CONFIG_SHEET_NAME_COLUMN_INDEX], 
-                self._xml_item_class_name(row[CONFIG_OUTPUT_NAME_COLUMN_INDEX]))
+            item = self._data_item(row[CONFIG_SHEET_NAME_COLUMN_INDEX], 
+                self._item_class_name(row[CONFIG_OUTPUT_NAME_COLUMN_INDEX]))
             ret[HEADER] += str.format('{}\n\n', item[HEADER])
             ret[CPP] += str.format('{}\n', item[CPP])
         return ret
 
-    def _export_xml_data(self):
-        header = self._get_cpp_template(TEMPLATE_XML_DATA_H)
-        cpp = self._get_cpp_template(TEMPLATE_XML_DATA_CPP)
+    def _export_data(self):
+        header = self._get_cpp_template(TEMPLATE_DATA_H)
+        cpp = self._get_cpp_template(TEMPLATE_DATA_CPP)
 
-        item_list = self._xml_data_item_list()
+        item_list = self._data_item_list()
         header = str.format(header, item_list[HEADER])
-        cpp = str.format(cpp, CPP_LEFT_BRACE, CPP_RIGHT_BRACE, item_list[CPP])
-        self._write_cpp(TEMPLATE_XML_DATA_H, header)
-        self._write_cpp(TEMPLATE_XML_DATA_CPP, cpp)
+        cpp = str.format(cpp, item_list[CPP])
+        self._write_cpp(TEMPLATE_DATA_H, header)
+        self._write_cpp(TEMPLATE_DATA_CPP, cpp)
 
-    def _xml_manager_cpp(self):
+    def _manager_cpp(self):
         texts = {}
         for row in self._output_config_table:
             file_name = row[CONFIG_OUTPUT_FILE_NAME_COLUMN_INDEX]
@@ -149,20 +155,20 @@ class CPPGenerate(Base):
             text += str.format('\t{}\n', marco)
         return text
 
-    def _export_xml_manager(self):
-        header = self._get_cpp_template(TEMPLATE_XML_MANAGER_H)
-        cpp = self._get_cpp_template(TEMPLATE_XML_MANAGER_CPP)
+    def _export_manager(self):
+        header = self._get_cpp_template(TEMPLATE_MANAGER_H)
+        cpp = self._get_cpp_template(TEMPLATE_MANAGER_CPP)
 
         header = str.format(header, CPP_LEFT_BRACE, CPP_RIGHT_BRACE, 
-            self._xml_manager_h(), XML_ITEM_CLASS_NAME_SUFFIX)
-        cpp = str.format(cpp, CPP_LEFT_BRACE, CPP_RIGHT_BRACE, self._xml_manager_cpp())
-        self._write_cpp(TEMPLATE_XML_MANAGER_H, header)
-        self._write_cpp(TEMPLATE_XML_MANAGER_CPP, cpp)
+            self._xml_manager_h(), ITEM_CLASS_NAME_SUFFIX)
+        cpp = str.format(cpp, CPP_LEFT_BRACE, CPP_RIGHT_BRACE, self._manager_cpp())
+        self._write_cpp(TEMPLATE_MANAGER_H, header)
+        self._write_cpp(TEMPLATE_MANAGER_CPP, cpp)
 
-    def _export_xml_loader(self):
-        loader = header = self._get_cpp_template(TEMPLATE_XML_LOADER)
-        loader = str.format(loader, CPP_LEFT_BRACE, CPP_RIGHT_BRACE, ROW_ELEMENT_NAME)
-        self._write_cpp(TEMPLATE_XML_LOADER, loader)
+    def _export_loader(self):
+        loader = header = self._get_cpp_template(TEMPLATE_LOADER)
+        loader = str.format(loader, CPP_LEFT_BRACE, CPP_RIGHT_BRACE)
+        self._write_cpp(TEMPLATE_LOADER, loader)
 
     def _get_cpp_template(self, file_name):
         template = self._cpp_templates.get(file_name)
@@ -193,10 +199,10 @@ class CPPGenerate(Base):
             sys.exit()
 
     def exportCppCode(self):
-        self._export_xml_data()
-        self._export_xml_loader()
-        self._export_xml_manager()
+        self._export_data()
+        self._export_loader()
+        self._export_manager()
 
 if __name__ == '__main__':
-    cpp = CPPGenerate()
+    cpp = CPPMaker()
     cpp.exportCppCode()
